@@ -15,4 +15,6 @@ IF (WIN32)
 	SET_PROPERTY(GLOBAL PROPERTY WIN32 "WIN32")
 ENDIF(WIN32)
 
+find_package(OpenCL REQUIRED)
+
 add_subdirectory(src)
