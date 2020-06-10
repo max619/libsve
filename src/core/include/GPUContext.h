@@ -2,11 +2,12 @@
 #include "PImpl.h"
 #include <memory>
 
-class GPUContext;
 typedef void* GPUMemoryHandle;
 struct GPUContextImpl;
 struct GPUMemoryBufferImpl;
 struct GPUCommandQueueImpl;
+class GPUMemoryBuffer;
+class GPUCommandQueue;
 
 enum class AccelerationDeviceType
 {
@@ -29,56 +30,48 @@ enum class GPUMemoryFlags : uint64_t
 };
 
 
-class GPUMemoryBuffer : PImplBase<GPUMemoryBufferImpl>
+enum class GPUCommandQueueProperties : uint64_t
 {
-public:
-	using PImplBase<GPUMemoryBufferImpl>::PImplBase;
-	using PImplBase<GPUMemoryBufferImpl>::operator=;
-
-	GPUMemoryBuffer(const GPUMemoryBuffer& lhs) = default;
-	GPUMemoryBuffer(GPUMemoryBuffer&& lhs) = default;
-
-	void* LockData(bool isWrite);
-	void UnlockData();
-
-	GPUMemoryBuffer& operator=(const GPUMemoryBuffer& lhs) = default;
-	GPUMemoryBuffer& operator=(GPUMemoryBuffer&& lhs) = default;
-private:
-
-	GPUMemoryBuffer(GPUContext context, GPUMemoryBufferImpl* impl);
-	GPUContext _context;
-
-	friend class GPUContext;
+	QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE = (1 << 0),
+	QUEUE_PROFILING_ENABLE = (1 << 1)
 };
 
-class GPUCommandQueue
-{
-public:
-	void* EnqueueMapBuffer(GPUMemoryBuffer& buffer, bool isRead);
-	void* EnqueueUnmapBuffer(GPUMemoryBuffer& buffer, bool isRead);
 
-private:
-	GPUCommandQueue(GPUContext context, GPUCommandQueueImpl* impl);
-
-	GPUContext _context;
-	GPUCommandQueueImpl* _impl;
-};
-
-class GPUContext
+class GPUContext : public  PImplBase<GPUContextImpl>
 {
 public:
 	GPUContext();
 	GPUContext(int deviceId);
 	GPUContext(AccelerationDeviceType type, int deviceId);
-	GPUContext(const GPUContext& lhs);
-	GPUContext(GPUContext&& lhs);
-	~GPUContext();
 	GPUMemoryBuffer AllocateBuffer(size_t size, GPUMemoryFlags flags);
 
-	GPUContext& operator=(const GPUContext& lhs);
-	GPUContext& operator=(GPUContext&& lhs);
-private:
-	GPUContextImpl* impl = nullptr;
+	GPUCommandQueue CreateCommandQueue(GPUCommandQueueProperties props);
+};
 
-	friend class GPUMemoryBuffer;
+
+class GPUMemoryBuffer : public PImplBase<GPUMemoryBufferImpl>
+{
+public:
+	GPUMemoryBuffer(GPUContext context, size_t size, GPUMemoryFlags flags);
+	GPUMemoryBuffer(GPUContext context, size_t size, GPUMemoryFlags flags, void* data);
+	void* LockData(bool isWrite);
+	void UnlockData();
+	void Resize(size_t size);
+	size_t GetDataSize() const;
+private:
+
+	GPUContext _context;
+};
+
+class GPUCommandQueue : public PImplBase<GPUCommandQueueImpl>
+{
+public:
+	GPUCommandQueue(GPUContext context, GPUCommandQueueProperties props = (GPUCommandQueueProperties)0);
+	void* EnqueueMapBuffer(GPUMemoryBuffer& buffer, bool isRead, bool blocking);
+	void* EnqueueMapBuffer(GPUMemoryBuffer& buffer, bool isRead, bool blocking, size_t offset, size_t size);
+	void EnqueueUnmapMemory(GPUMemoryBuffer& buffer, bool isRead, bool blocking);
+
+private:
+
+	GPUContext _context;
 };

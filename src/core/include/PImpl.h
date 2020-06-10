@@ -20,6 +20,9 @@ public:
 	PImplBase(PImplBase<TImpl>&& lhs);
 	virtual ~PImplBase();
 
+	TImpl* GetImpl();
+	const TImpl* GetImpl() const;
+
 	PImplBase<TImpl>& operator=(const PImplBase<TImpl>& lhs);
 	PImplBase<TImpl>& operator=(PImplBase<TImpl>&& lhs);
 
@@ -28,6 +31,9 @@ protected:
 
 private:
 	void (*_deleter)(TImpl*);
+
+	template<typename T>
+	friend class PImplBase<T>;
 };
 
 template<typename TImpl>
@@ -72,6 +78,18 @@ inline PImplBase<TImpl>::~PImplBase()
 	if (_impl != nullptr)
 		_deleter(_impl);
 	_impl = nullptr;
+}
+
+template<typename TImpl>
+inline TImpl* PImplBase<TImpl>::GetImpl()
+{
+	return _impl;
+}
+
+template<typename TImpl>
+inline const TImpl* PImplBase<TImpl>::GetImpl() const
+{
+	return _impl;
 }
 
 template<typename TImpl>

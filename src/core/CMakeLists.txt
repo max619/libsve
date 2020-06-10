@@ -6,12 +6,17 @@ src/PixelFormatsConverter.cpp
 src/GPUContext.cpp
 src/Utils.cpp
 src/Utils.h
+src/PrivateGPUContextStructsImpl.h
+src/GPUKernel.cpp
+src/GPUKernelSourceProvider.cpp
 include/BitmapFrame.h
 include/PImpl.h
 include/GPUContext.h
 include/Frame.h
 include/PixelFormats.h
-include/PixelFormatsConverter.h)
+include/PixelFormatsConverter.h
+include/GPUKernel.h
+include/GPUKernelSourceProvider.h)
 
 #install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/OpenShotVersion.h
 #       DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libopenshot)
